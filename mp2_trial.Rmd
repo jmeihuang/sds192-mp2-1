@@ -1,4 +1,0 @@
----
-title: "mp2"
-output: html_document
----
