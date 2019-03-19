@@ -1,0 +1,47 @@
+---
+title: "Mini-Project 2"
+author: "Your Name Here"
+date: "2019-03-24"
+output: 
+  html_document:
+    code_folding: show
+---
+
+
+## Loading the data
+
+This project is so interesting and relevant to my life!
+
+```{r, message=FALSE}
+library(tidyverse)
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
+```
+
+```{r}
+##filter by year, MA, by DEM and REP
+filtered_data <- candidates %>%
+  filter ( cand_election_yr == 2012)%>%
+  filter (cand_office_state == "MA")%>%
+  filter (cand_party_affiliation %in% c("DEM", "REP"))
+```
+
+```{r}
+##joing candidates and contributions data frame
+
+joined_data <- filtered_data %>%
+  inner_join(contributions, by = "cand_id")%>%
+  filter(transaction_type %in% c("24A", "24E"))%>%
+  filter (transaction_pgi %in% c ("G", "G2012"))
+```
+
+```{r}
+##making two datasets for two parties
+dem <- joined_data %>%
+  filter (cand_party_affiliation == "DEM")
+rep <- joined_data %>%
+  filter (cand_party_affiliation == "REP")
+```
+
