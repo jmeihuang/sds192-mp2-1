@@ -1,0 +1,65 @@
+---
+title: "mp2-nm"
+author: "Nukhbah Majid"
+date: "3/18/2019"
+output: 
+  html_document:
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading the data
+
+
+```{r, message=FALSE}
+library(tidyverse)
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
+```
+
+```{r}
+fltr_cand <- candidates %>%
+  filter(cand_office_state == "MA", cand_election_yr == "2012", cand_party_affiliation == "DEM" | cand_party_affiliation == "REP") %>%
+  inner_join(contributions, by = "cand_id") %>%
+  filter(transaction_type == "24A" | transaction_type == "24E")
+```
+
+## Filter according to party affiliation:
+
+The `REP` data set:
+
+```{r}
+rep_data <- fltr_cand %>%
+  filter(cand_party_affiliation == "REP")
+```
+
+
+The `DEM` data set: 
+
+```{r}
+dem_data <- fltr_cand %>%
+  filter(cand_party_affiliation == "DEM")
+
+```
+
+
+```{r}
+num_dem <- dem_data %>%
+  summarize(n_distinct(cand_id))
+
+num_rep <- rep_data %>%
+  summarize(n_distinct(cand_id))
+
+num_type_elections <- fltr_cand %>%
+  summarize(n_distinct(transaction_pgi))
+```
+
+
+
+
+
