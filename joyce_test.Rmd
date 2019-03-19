@@ -1,0 +1,36 @@
+---
+title: "Joyce_test"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+new_cand <- candidates %>%
+  filter(cand_party_affiliation == "DEM" | cand_party_affiliation == "REP", cand_election_yr == "2012", cand_office_state == "MA") %>%
+  inner_join(contributions, by = "cand_id") %>%
+  filter(transaction_type == "24A" | transaction_type == "24E")
+```
+
+```{r}
+##democrats
+dem_data <- new_cand %>%
+  filter(cand_party_affiliation == "DEM")
+dem_num <- dem_data %>%
+  summarise(num_dem = n_distinct(cand_name))
+
+##republicans
+rep_data <- new_cand %>%
+  filter(cand_party_affiliation == "REP")
+rep_num <- rep_data %>%
+  summarise(num_dem = n_distinct(cand_name))
+```
+
+
