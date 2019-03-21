@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, message=FALSE}
 library(tidyverse)
+library(dplyr)
+library(plyr)
 load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
@@ -44,7 +46,6 @@ The `DEM` data set:
 ```{r}
 dem_data <- fltr_cand %>%
   filter(cand_party_affiliation == "DEM")
-
 ```
 
 
@@ -58,6 +59,26 @@ num_rep <- rep_data %>%
 num_type_elections <- fltr_cand %>%
   summarize(n_distinct(transaction_pgi))
 ```
+
+Since we are only working with the General Elections data for `2012`, filter accordingly:
+
+```{r}
+dem_data <- dem_data %>%
+  filter(transaction_pgi == "G" | transaction_pgi == "G2012") 
+
+rep_data <- rep_data %>%
+  filter(transaction_pgi == "G" | transaction_pgi == "G2012")
+```
+
+Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
+
+```{r}
+dem_data$transaction_pgi <- revalue(dem_data$transaction_pgi, c("G2012" = "G"))
+rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
+```
+
+
+
 
 
 
