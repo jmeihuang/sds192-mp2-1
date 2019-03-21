@@ -12,7 +12,7 @@ output:
 
 This project is so interesting and relevant to my life!
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo = FALSE}
 library(tidyverse)
 load("house_elections.rda")
 load("candidates.rda")
@@ -53,7 +53,7 @@ dem$transaction_pgi <- revalue(dem$transaction_pgi, c("G2012" = "G"))
 rep$transaction_pgi <- revalue(rep$transaction_pgi, c("G2012" = "G"))
 ```
 
-```{r}
+```{r, echo = FALSE}
 detach(package:plyr)
 ```
 
@@ -75,11 +75,22 @@ all_name <- map_df(name_df$vector_name, new_data)
 ```
 
 ```{r}
+##arranging by the amount of contribution ----
+##name_order arranges the candidates in MA by total amount given to them
+name_order <- joined_data %>%
+  group_by(cand_name) %>%
+  summarize(total_given = sum(transaction_amt)) %>%
+  arrange(desc(total_given))
+
+all_name$cand_name <- factor(all_name$cand_name, levels = name_order$cand_name)
+```
+
+```{r}
 ##making a bar graph to plot the summarise data ----
-fill_col <- c("gray","green")
+fill_cols <- c("gray","green")
 ggplot(all_name, aes(x = transaction_type, y = total/100000, fill = transaction_type)) +
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = fill_c)+
+  scale_fill_manual(values = fill_cols)+
   scale_y_continuous(expand = c(0, 0))+
   facet_wrap(~as.factor(cand_party_affiliation))+
   labs(title = "Amount Spent by the Committees'For' and 'Against' Candidates of the Two Major Parties", x = "Party Affiliation", y = "Amount donated (in $100,000)")
@@ -98,19 +109,7 @@ ggplot(all_name, aes(x = transaction_type, y = total, fill = transaction_type)) 
 
 ```
 
-```{r}
-##contribution to each democractic candidate ---- 
-fill_c <- c("blue", "gray")
-ggplot(bar_dem, aes(x = cand_name,y = total, fill = transaction_type))+
-  geom_bar(stat = "identity", position = "dodge")+
-  scale_fill_manual(values = fill_c)+
-  scale_y_continuous(limits = c(0,3000000), expand = c(0, 0))+
-  theme_classic()+
-  theme_classic()+
-  theme(axis.text.x=element_blank())+
-  facet_wrap(~cand_name)
-  
-```
+
 
 
 
