@@ -9,6 +9,12 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(tidyverse)
+library(dplyr)
+library(plyr)
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
 ```
 
 
@@ -23,14 +29,45 @@ new_cand <- candidates %>%
 ##democrats
 dem_data <- new_cand %>%
   filter(cand_party_affiliation == "DEM")
-dem_num <- dem_data %>%
-  summarise(num_dem = n_distinct(cand_name))
 
 ##republicans
 rep_data <- new_cand %>%
   filter(cand_party_affiliation == "REP")
-rep_num <- rep_data %>%
-  summarise(num_dem = n_distinct(cand_name))
 ```
 
+Filter for the general election candidates:
+
+```{r}
+dem_data <- dem_data %>%
+  filter(transaction_pgi == "G" | transaction_pgi == "G2012")
+
+rep_data <- rep_data %>%
+  filter(transaction_pgi == "G" | transaction_pgi == "G2012")
+
+##number of dems and reps
+dem_num <- dem_data %>%
+  summarise(num_dem = n_distinct(cand_id))
+
+rep_num <- rep_data %>%
+  summarise(num_dem = n_distinct(cand_id))
+```
+
+Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
+
+```{r}
+dem_data$transaction_pgi <- revalue(dem_data$transaction_pgi, c("G2012" = "G"))
+rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
+```
+
+look at individual candidates
+```{r}
+detach(package:plyr)
+test <-dem_data %>%
+  filter(cand_name == "WARREN, ELIZABETH") %>%
+  group_by(transaction_type) %>%
+  summarize(total = sum(transaction_amt))
+
+ggplot(test, aes(x = transaction_type, y = total)) +
+  geom_bar(stat = "identity")
+```
 
