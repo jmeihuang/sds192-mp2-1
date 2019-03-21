@@ -1,5 +1,5 @@
 ---
-title: "mp2-nm"
+title: "Mini Project 2"
 author: "Nukhbah Majid"
 date: "3/18/2019"
 output: 
@@ -67,7 +67,7 @@ num_type_elections <- fltr_cand %>%
 Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
 
 ```{r}
-fltr_cand$transaction_pgi <- revalue(dem_data$transaction_pgi, c("G2012" = "G"))
+fltr_cand$transaction_pgi <- revalue(fltr_cand$transaction_pgi, c("G2012" = "G"))
 ```
 
 Detach the plyr package: 
@@ -85,13 +85,11 @@ candOrdered <- fltr_cand %>%
   arrange(desc(total_given))
 ```
 
-Make a function so that you could do the same for *all* the candidates - Democrats & Republicans:
+Make a function so that you could do the same for *all* the candidates - Democrats & Republicans.Store all the *unique* candidate names in the data frame as a vector and map the function that produces the bar graph on all of them: 
 
-Store all the *unique* candidate names in the data frame as a vector and map the function that produces the bar graph on all of them: 
-
-```{r, warning = FALSE}
-candIDVector <- unique(candOrdered$cand_name)
-candidatesDF <- data.frame(candIDVector)
+```{r fig.width=12, fig.height=11}
+candNamesVector <- unique(candOrdered$cand_name)
+candidatesDF <- data.frame(candNamesVector)
 
 eachCandData <- function(cand_name_arg) {
   fltr_cand %>%
@@ -100,12 +98,40 @@ eachCandData <- function(cand_name_arg) {
     summarize(total = sum(transaction_amt))
 }
 
-allCandidates <- map_df(candidatesDF, eachCandData)
+allCandidates <- map_df(candidatesDF$candNamesVector, eachCandData)
 
+#facet_wrap arranges alphabetically by default, so in order to graph the plot in the correct order of the names we have to do this
+allCandidates$cand_name <- factor(allCandidates$cand_name, levels = candOrdered$cand_name)
+```
+
+Make bar graphs: 
+
+```{r}
+##making a bar graph to plot the summarise data ----
+colorVector <- c("grey","green")
+
+ggplot(allCandidates, aes(x = transaction_type, y = total/1000000, fill = transaction_type)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(values = colorVector)+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 5))+
+  scale_x_discrete(labels = c("24E" = "Money\n Supporting", "24A" = "Money\n Opposing")) +
+  facet_wrap(~as.factor(cand_party_affiliation)) +
+  labs(title = "Total Donations by the Committees 'For' and 'Against' Candidates of the Two Major Parties",
+       x = "Party Affiliation", 
+       y = "Amount donated (in millions/$)") +
+  theme(legend.position = "none")
+  
+  
+```
+
+```{r}
+## plotting data graph for each
+colorVector2 <- c("blue", "grey")
 ggplot(allCandidates, aes(x = transaction_type, y = total, fill = transaction_type)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~as.factor(cand_name))
-
+  scale_fill_manual(values = colorVector2)+
+  scale_y_continuous(expand = c(0, 0))+
+  facet_wrap(~as.factor(cand_name)) 
 ```
 
 
