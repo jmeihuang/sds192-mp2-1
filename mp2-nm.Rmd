@@ -78,6 +78,18 @@ rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
 ```
 
 
+```{r}
+num_dem <- dem_data %>%
+  summarize(n_distinct(cand_id))
+
+num_rep <- rep_data %>%
+  summarize(n_distinct(cand_id))
+
+num_type_elections <- fltr_cand %>%
+  summarize(n_distinct(transaction_pgi))
+```
+
+
 
 
 
