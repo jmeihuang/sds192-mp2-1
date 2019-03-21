@@ -29,7 +29,8 @@ load("contributions.rda")
 fltr_cand <- candidates %>%
   filter(cand_office_state == "MA", cand_election_yr == "2012", cand_party_affiliation == "DEM" | cand_party_affiliation == "REP") %>%
   inner_join(contributions, by = "cand_id") %>%
-  filter(transaction_type == "24A" | transaction_type == "24E") 
+  filter(transaction_type == "24A" | transaction_type == "24E", 
+         transaction_pgi == "G" | transaction_pgi == "G2012") 
 ```
 
 ## Filter according to party affiliation:
@@ -61,35 +62,12 @@ num_type_elections <- fltr_cand %>%
   summarize(n_distinct(transaction_pgi))
 ```
 
-Since we are only working with the General Elections data for `2012`, filter accordingly:
-
-```{r}
-dem_data <- dem_data %>%
-  filter(transaction_pgi == "G" | transaction_pgi == "G2012") 
-
-rep_data <- rep_data %>%
-  filter(transaction_pgi == "G" | transaction_pgi == "G2012")
-```
-
 
 
 Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
 
 ```{r}
-dem_data$transaction_pgi <- revalue(dem_data$transaction_pgi, c("G2012" = "G"))
-rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
-```
-
-
-```{r}
-num_dem <- dem_data %>%
-  summarize(n_distinct(cand_id))
-
-num_rep <- rep_data %>%
-  summarize(n_distinct(cand_id))
-
-num_type_elections <- fltr_cand %>%
-  summarize(n_distinct(transaction_pgi))
+fltr_cand$transaction_pgi <- revalue(dem_data$transaction_pgi, c("G2012" = "G"))
 ```
 
 Detach the plyr package: 
@@ -98,45 +76,29 @@ Detach the plyr package:
 detach(package:plyr)
 ```
 
-For both Democrats and Republicans, and for each candidate in those respective parties, produce a data graphic to show: 1. how much money was pitched for them; 2. how much money was pitched against them
-
-
-Test consolidating the amount of contributions **for** or **against** a candidate, and plotting it as a bar graph:
+Rearrange the data in the table so that contributions that are greater in magnitude are on the top: 
 
 ```{r}
-forEachDem <- dem_data %>%
-  filter(cand_id == "S2MA00170") %>%
-  select(cand_id, cand_name, cand_party_affiliation,
-         cand_election_yr, cand_office_state, cmte_id,
-         transaction_pgi, transaction_type, entity_type, name, transaction_amt) %>%
-  group_by(transaction_type) 
-
-forEachDemSummary <- forEachDem %>%
-  summarize(total = sum(transaction_amt))
-
-ggplot(forEachDemSummary, aes(x = transaction_type, y = total)) +
-  geom_bar(stat = "identity") +
-  ggtitle(label = forEachDem$cand_name[1])
+candOrdered <- fltr_cand %>%
+  group_by(cand_name) %>%
+  summarize(total_given = sum(transaction_amt)) %>%
+  arrange(desc(total_given))
 ```
-
 
 Make a function so that you could do the same for *all* the candidates - Democrats & Republicans:
 
-```{r,  message = FALSE}
+Store all the *unique* candidate names in the data frame as a vector and map the function that produces the bar graph on all of them: 
+
+```{r, warning = FALSE}
+candIDVector <- unique(candOrdered$cand_name)
+candidatesDF <- data.frame(candIDVector)
+
 eachCandData <- function(cand_name_arg) {
   fltr_cand %>%
     filter(cand_name == cand_name_arg) %>%
     group_by(transaction_type, cand_name, cand_party_affiliation) %>%
     summarize(total = sum(transaction_amt))
 }
-```
-
-
-Store all the *unique* candidate IDs in the data frame as a vector and map the function that produces the bar graph on all of them: 
-
-```{r, message = FALSE}
-candIDVector <- unique(fltr_cand$cand_name)
-candidatesDF <- data.frame(candIDVector)
 
 allCandidates <- map_df(candidatesDF, eachCandData)
 
