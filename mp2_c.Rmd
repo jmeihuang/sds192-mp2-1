@@ -87,7 +87,7 @@ all_name$cand_name <- factor(all_name$cand_name, levels = name_order$cand_name)
 
 ```{r}
 ##making a bar graph to plot the summarise data ----
-fill_cols <- c("gray","green")
+fill_cols <- c("grey","green")
 ggplot(all_name, aes(x = transaction_type, y = total/100000, fill = transaction_type)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = fill_cols)+
@@ -100,7 +100,7 @@ ggplot(all_name, aes(x = transaction_type, y = total/100000, fill = transaction_
 
 ```{r}
 ## plotting data graph for each
-fill_c <- c("blue", "gray")
+fill_c <- c("blue", "grey")
 ggplot(all_name, aes(x = transaction_type, y = total, fill = transaction_type)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = fill_c)+
