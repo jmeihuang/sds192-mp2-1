@@ -24,6 +24,11 @@ new_cand <- candidates %>%
   filter(cand_party_affiliation == "DEM" | cand_party_affiliation == "REP", cand_election_yr == "2012", cand_office_state == "MA") %>%
   inner_join(contributions, by = "cand_id") %>%
   filter(transaction_type == "24A" | transaction_type == "24E", transaction_pgi == "G" | transaction_pgi == "G2012")
+  
+name_order <- new_cand %>%
+  group_by(cand_name) %>%
+  summarize(total_given = sum(transaction_amt)) %>%
+  arrange(desc(total_given))
 ```
 
 ```{r}
@@ -61,10 +66,10 @@ rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
 ```
 
 look at individual candidates
-```{r}
+```{r fig.width=12, fig.height=11}
 detach(package:plyr)
 
-vector_name <- unique(new_cand$cand_name)
+vector_name <- unique(name_order$cand_name)
 name_df <- data.frame(vector_name)
 
 new_data <- function(name_arg) {
@@ -76,8 +81,12 @@ new_data <- function(name_arg) {
 
 all_name <- map_df(name_df$vector_name, new_data)
 
+all_name$cand_name <- factor(all_name$cand_name, levels = name_order$cand_name)
+
 ggplot(all_name, aes(x = transaction_type, y = total, fill = transaction_type)) +
   geom_bar(stat = "identity") +
+  labs(x = "Transaction type", y = "Total amount given") +
+  theme(legend.position = "none") +
   facet_wrap(~as.factor(cand_name))
 
 ```
