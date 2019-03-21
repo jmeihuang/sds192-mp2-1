@@ -20,10 +20,17 @@ load("contributions.rda")
 
 
 ```{r}
+##new_cand just filters for the candidates we want
 new_cand <- candidates %>%
   filter(cand_party_affiliation == "DEM" | cand_party_affiliation == "REP", cand_election_yr == "2012", cand_office_state == "MA") %>%
   inner_join(contributions, by = "cand_id") %>%
   filter(transaction_type == "24A" | transaction_type == "24E", transaction_pgi == "G" | transaction_pgi == "G2012")
+
+##name_order arranges the candidates in MA by total amount given to them
+name_order <- new_cand %>%
+  group_by(cand_name) %>%
+  summarize(total_given = sum(transaction_amt)) %>%
+  arrange(desc(total_given))
 ```
 
 ```{r}
@@ -61,12 +68,16 @@ rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
 ```
 
 look at individual candidates
-```{r}
+```{r fig.width=12, fig.height=11}
 detach(package:plyr)
 
-vector_name <- unique(new_cand$cand_name)
+##vector_name is a vector with the names in name_order (so names are listed in descending order of total amount given to them)
+vector_name <- unique(name_order$cand_name)
+
+##name_df puts vector_name into a dataframe
 name_df <- data.frame(vector_name)
 
+#call function on the names
 new_data <- function(name_arg) {
   new_cand %>%
     filter(cand_name == name_arg) %>%
@@ -74,10 +85,16 @@ new_data <- function(name_arg) {
     summarize(total = sum(transaction_amt))
 }
 
+#map dataframe of names to the function
 all_name <- map_df(name_df$vector_name, new_data)
+
+#facet_wrap arranges alphabetically by default, so in order to graph the plot in the correct order of the names we have to do this
+all_name$cand_name <- factor(all_name$cand_name, levels = name_order$cand_name)
 
 ggplot(all_name, aes(x = transaction_type, y = total, fill = transaction_type)) +
   geom_bar(stat = "identity") +
+  labs(x = "Transaction type", y = "Total amount given") +
+  theme(legend.position = "none") +
   facet_wrap(~as.factor(cand_name))
 
 ```

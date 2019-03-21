@@ -57,36 +57,53 @@ rep$transaction_pgi <- revalue(rep$transaction_pgi, c("G2012" = "G"))
 detach(package:plyr)
 ```
 
-
-
 ```{r}
-## SUmmarising the total amount for and against the democrats and Repulican ----
-bar<- joined_data %>%
-  group_by(transaction_type, cand_party_affiliation)%>%
-  summarise(total = sum(transaction_amt))%>%
-  ungroup()%>%
-  group_by(cand_party_affiliation)
+##finding out contribution for individual candidates and plotting bar graph for DEm and REP ----
 
-bar_dem <- dem %>%
-  group_by(cand_id, transaction_type)%>%
-  summarise(cand_name = cand_name[1],total = sum(transaction_amt))
+vector_name <- unique(joined_data$cand_name)
+name_df <- data.frame(vector_name)
+
+new_data <- function(name_arg) {
+  joined_data %>%
+    filter(cand_name == name_arg) %>%
+    group_by(transaction_type, cand_name, cand_party_affiliation) %>%
+    summarize(total = sum(transaction_amt))
+}
+
+all_name <- map_df(name_df$vector_name, new_data)
+
 ```
 
 ```{r}
 ##making a bar graph to plot the summarise data ----
-ggplot(bar, aes(x = cand_party_affiliation, y = total/100000, fill = transaction_type))+
-  geom_bar(stat = "identity", position = "dodge")+
-  scale_y_continuous(limits = c(0,50), expand = c(0, 0))+
-  theme_classic()+
-  labs(title = "Amount Spent by the Committees'For' and 'Against' Candidates of the Two Major Parties", x = "Party Affiliation", y = "Amount donated (in $100,000)")+
-  theme(axis.text.x=element_blank())
+fill_col <- c("gray","green")
+ggplot(all_name, aes(x = transaction_type, y = total/100000, fill = transaction_type)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = fill_c)+
+  scale_y_continuous(expand = c(0, 0))+
+  facet_wrap(~as.factor(cand_party_affiliation))+
+  labs(title = "Amount Spent by the Committees'For' and 'Against' Candidates of the Two Major Parties", x = "Party Affiliation", y = "Amount donated (in $100,000)")
+  
   
 ```
 
 ```{r}
+## plotting data graph for each
+fill_c <- c("blue", "gray")
+ggplot(all_name, aes(x = transaction_type, y = total, fill = transaction_type)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = fill_c)+
+  scale_y_continuous(expand = c(0, 0))+
+  facet_wrap(~as.factor(cand_name))
+
+```
+
+```{r}
 ##contribution to each democractic candidate ---- 
+fill_c <- c("blue", "gray")
 ggplot(bar_dem, aes(x = cand_name,y = total, fill = transaction_type))+
   geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual(values = fill_c)+
   scale_y_continuous(limits = c(0,3000000), expand = c(0, 0))+
   theme_classic()+
   theme_classic()+
