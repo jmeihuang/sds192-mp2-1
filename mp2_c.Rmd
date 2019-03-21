@@ -62,9 +62,7 @@ summarize(
             for_cand = total - Against)
 ```
 
-```{r}
-glimpse(dem)
-```
+
 
 
 
