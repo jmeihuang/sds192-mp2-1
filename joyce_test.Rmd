@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(dplyr)
 library(plyr)
+library(purrr)
 load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
@@ -22,7 +23,7 @@ load("contributions.rda")
 new_cand <- candidates %>%
   filter(cand_party_affiliation == "DEM" | cand_party_affiliation == "REP", cand_election_yr == "2012", cand_office_state == "MA") %>%
   inner_join(contributions, by = "cand_id") %>%
-  filter(transaction_type == "24A" | transaction_type == "24E")
+  filter(transaction_type == "24A" | transaction_type == "24E", transaction_pgi == "G" | transaction_pgi == "G2012")
 ```
 
 ```{r}
@@ -62,12 +63,22 @@ rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
 look at individual candidates
 ```{r}
 detach(package:plyr)
-test <-dem_data %>%
-  filter(cand_name == "WARREN, ELIZABETH") %>%
-  group_by(transaction_type) %>%
-  summarize(total = sum(transaction_amt))
 
-ggplot(test, aes(x = transaction_type, y = total)) +
-  geom_bar(stat = "identity")
+vector_name <- unique(new_cand$cand_name)
+name_df <- data.frame(vector_name)
+
+new_data <- function(name_arg) {
+  new_cand %>%
+    filter(cand_name == name_arg) %>%
+    group_by(transaction_type, cand_name, cand_party_affiliation) %>%
+    summarize(total = sum(transaction_amt))
+}
+
+all_name <- map_df(name_df$vector_name, new_data)
+
+ggplot(all_name, aes(x = transaction_type, y = total, fill = transaction_type)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~as.factor(cand_name))
+
 ```
 
