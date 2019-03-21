@@ -165,7 +165,7 @@ eachRepData <- function(cand_id_arg) {
 ```
 
 
-Store all the *unique* candidate IDs in the data frame as a vector and map the function that produces the bar graph on all of them: 
+Store all the *unique* candidate IDs in the data frame as a vector and map the function that produces the bar graph on all of them: f
 
 ```{r}
 demCandIDVector <- unique(dem_data$cand_id)
