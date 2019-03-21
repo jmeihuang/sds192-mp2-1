@@ -18,6 +18,8 @@ load("house_elections.rda")
 load("candidates.rda")
 load("committees.rda")
 load("contributions.rda")
+library(plyr)
+library(ggthemes)
 ```
 
 ```{r}
@@ -46,25 +48,53 @@ rep <- joined_data %>%
   filter (cand_party_affiliation == "REP")
 ```
 
+```{r}
+dem$transaction_pgi <- revalue(dem$transaction_pgi, c("G2012" = "G"))
+rep$transaction_pgi <- revalue(rep$transaction_pgi, c("G2012" = "G"))
+```
+
+```{r}
+detach(package:plyr)
+```
+
+
 
 ```{r}
 ## SUmmarising the total amount for and against the democrats and Repulican ----
+bar<- joined_data %>%
+  group_by(transaction_type, cand_party_affiliation)%>%
+  summarise(total = sum(transaction_amt))%>%
+  ungroup()%>%
+  group_by(cand_party_affiliation)
+
 bar_dem <- dem %>%
-  summarize( 
-            total = sum(transaction_amt), 
-            Against = sum(ifelse(transaction_type == "24E", transaction_amt, 0)), 
-            for_cand = total - Against)
-  
-bar_rep <- rep %>%
-summarize( 
-            total = sum(transaction_amt), 
-            Against = sum(ifelse(transaction_type == "24E", transaction_amt, 0)), 
-            for_cand = total - Against)
+  group_by(cand_id, transaction_type)%>%
+  summarise(cand_name = cand_name[1],total = sum(transaction_amt))
 ```
 
 ```{r}
-glimpse(dem)
+##making a bar graph to plot the summarise data ----
+ggplot(bar, aes(x = cand_party_affiliation, y = total/100000, fill = transaction_type))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_y_continuous(limits = c(0,50), expand = c(0, 0))+
+  theme_classic()+
+  labs(title = "Amount Spent by the Committees'For' and 'Against' Candidates of the Two Major Parties", x = "Party Affiliation", y = "Amount donated (in $100,000)")+
+  theme(axis.text.x=element_blank())
+  
 ```
+
+```{r}
+##contribution to each democractic candidate ---- 
+ggplot(bar_dem, aes(x = cand_name,y = total, fill = transaction_type))+
+  geom_bar(stat = "identity", position = "dodge")+
+  scale_y_continuous(limits = c(0,3000000), expand = c(0, 0))+
+  theme_classic()+
+  theme_classic()+
+  theme(axis.text.x=element_blank())+
+  facet_wrap(~cand_name)
+  
+```
+
 
 
 
