@@ -74,12 +74,14 @@ bar_dem <- dem %>%
 
 ```{r}
 ##making a bar graph to plot the summarise data ----
+fill_col <- c("gray","green")
 ggplot(bar, aes(x = cand_party_affiliation, y = total/100000, fill = transaction_type))+
   geom_bar(stat = "identity", position = "dodge")+
+  scale_fill_manual (values = fill_col)+
   scale_y_continuous(limits = c(0,50), expand = c(0, 0))+
   theme_classic()+
-  labs(title = "Amount Spent by the Committees'For' and 'Against' Candidates of the Two Major Parties", x = "Party Affiliation", y = "Amount donated (in $100,000)")+
-  theme(axis.text.x=element_blank())
+  labs(title = "Amount Spent by the Committees'For' and 'Against' Candidates of the Two Major Parties", x = "Party Affiliation", y = "Amount donated (in $100,000)")
+  
   
 ```
 
