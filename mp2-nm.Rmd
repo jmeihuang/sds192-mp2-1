@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, message=FALSE}
 library(tidyverse)
+library(ggplot2)
 library(dplyr)
 library(plyr)
 load("house_elections.rda")
@@ -28,7 +29,7 @@ load("contributions.rda")
 fltr_cand <- candidates %>%
   filter(cand_office_state == "MA", cand_election_yr == "2012", cand_party_affiliation == "DEM" | cand_party_affiliation == "REP") %>%
   inner_join(contributions, by = "cand_id") %>%
-  filter(transaction_type == "24A" | transaction_type == "24E")
+  filter(transaction_type == "24A" | transaction_type == "24E") 
 ```
 
 ## Filter according to party affiliation:
@@ -70,6 +71,8 @@ rep_data <- rep_data %>%
   filter(transaction_pgi == "G" | transaction_pgi == "G2012")
 ```
 
+
+
 Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
 
 ```{r}
@@ -89,7 +92,88 @@ num_type_elections <- fltr_cand %>%
   summarize(n_distinct(transaction_pgi))
 ```
 
+Detach the plyr package: 
 
+```{r}
+detach(package:plyr)
+```
+
+For both Democrats and Republicans, and for each candidate in those respective parties, produce a data graphic to show: 1. how much money was pitched for them; 2. how much money was pitched against them
+
+
+Test consolidating the amount of contributions **for** or **against** a candidate, and plotting it as a bar graph:
+
+```{r}
+forEachDem <- dem_data %>%
+  filter(cand_id == "S2MA00170") %>%
+  select(cand_id, cand_name, cand_party_affiliation,
+         cand_election_yr, cand_office_state, cmte_id,
+         transaction_pgi, transaction_type, entity_type, name, transaction_amt) %>%
+  group_by(transaction_type) 
+
+forEachDemSummary <- forEachDem %>%
+  summarize(total = sum(transaction_amt))
+
+ggplot(forEachDemSummary, aes(x = transaction_type, y = total)) +
+  geom_bar(stat = "identity") +
+  ggtitle(label = forEachDem$cand_name[1])
+```
+
+
+Make a function so that you could do the same for *all* the candidates - Democrats:
+
+```{r}
+eachDemData <- function(cand_id_arg) {
+  
+  forEachCand <- dem_data %>%
+  filter(cand_id == cand_id_arg) %>%
+  select(cand_id, cand_name, cand_party_affiliation,
+         cand_election_yr, cand_office_state, cmte_id,
+         transaction_pgi, transaction_type, entity_type, name, transaction_amt) %>%
+  group_by(transaction_type)
+  
+
+  forEachCandSummary <- forEachCand %>%
+    summarize(total = sum(transaction_amt))
+
+  ggplot(forEachCandSummary, aes(x = transaction_type, y = total)) +
+    geom_bar(stat = "identity") +
+    ggtitle(label = forEachCand$cand_name[1])
+}
+```
+
+Similarly a function for all the Republicans: 
+
+```{r}
+eachRepData <- function(cand_id_arg) {
+  
+  forEachCand <- rep_data %>%
+  filter(cand_id == cand_id_arg) %>%
+  select(cand_id, cand_name, cand_party_affiliation,
+         cand_election_yr, cand_office_state, cmte_id,
+         transaction_pgi, transaction_type, entity_type, name, transaction_amt) %>%
+  group_by(transaction_type)
+  
+
+  forEachCandSummary <- forEachCand %>%
+    summarize(total = sum(transaction_amt))
+
+  ggplot(forEachCandSummary, aes(x = transaction_type, y = total)) +
+    geom_bar(stat = "identity") +
+    ggtitle(label = forEachCand$cand_name[1])
+}
+```
+
+
+Store all the *unique* candidate IDs in the data frame as a vector and map the function that produces the bar graph on all of them: 
+
+```{r}
+demCandIDVector <- unique(dem_data$cand_id)
+repCandIDVector <- unique(rep_data$cand_id)
+
+map(demCandIDVector, eachDemData)
+map(repCandIDVector, eachRepData)
+```
 
 
 
