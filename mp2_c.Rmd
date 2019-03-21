@@ -21,7 +21,7 @@ load("contributions.rda")
 ```
 
 ```{r}
-##filter by year, MA, by DEM and REP
+##filter by year, MA, by DEM and REP ----
 filtered_data <- candidates %>%
   filter ( cand_election_yr == 2012)%>%
   filter (cand_office_state == "MA")%>%
@@ -29,7 +29,7 @@ filtered_data <- candidates %>%
 ```
 
 ```{r}
-##joing candidates and contributions data frame
+##joing candidates and contributions data frame ----
 
 joined_data <- filtered_data %>%
   inner_join(contributions, by = "cand_id")%>%
@@ -38,10 +38,35 @@ joined_data <- filtered_data %>%
 ```
 
 ```{r}
-##making two datasets for two parties
+##making two datasets for two parties ----
 dem <- joined_data %>%
   filter (cand_party_affiliation == "DEM")
+
 rep <- joined_data %>%
   filter (cand_party_affiliation == "REP")
 ```
+
+
+```{r}
+## SUmmarising the total amount for and against the democrats and Repulican ----
+bar_dem <- dem %>%
+  summarize( 
+            total = sum(transaction_amt), 
+            Against = sum(ifelse(transaction_type == "24E", transaction_amt, 0)), 
+            for_cand = total - Against)
+  
+bar_rep <- rep %>%
+summarize( 
+            total = sum(transaction_amt), 
+            Against = sum(ifelse(transaction_type == "24E", transaction_amt, 0)), 
+            for_cand = total - Against)
+```
+
+```{r}
+glimpse(dem)
+```
+
+
+
+
 
