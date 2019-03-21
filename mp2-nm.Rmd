@@ -120,59 +120,30 @@ ggplot(forEachDemSummary, aes(x = transaction_type, y = total)) +
 ```
 
 
-Make a function so that you could do the same for *all* the candidates - Democrats:
+Make a function so that you could do the same for *all* the candidates - Democrats & Republicans:
 
-```{r}
-eachDemData <- function(cand_id_arg) {
-  
-  forEachCand <- dem_data %>%
-  filter(cand_id == cand_id_arg) %>%
-  select(cand_id, cand_name, cand_party_affiliation,
-         cand_election_yr, cand_office_state, cmte_id,
-         transaction_pgi, transaction_type, entity_type, name, transaction_amt) %>%
-  group_by(transaction_type)
-  
-
-  forEachCandSummary <- forEachCand %>%
+```{r,  message = FALSE}
+eachCandData <- function(cand_name_arg) {
+  fltr_cand %>%
+    filter(cand_name == cand_name_arg) %>%
+    group_by(transaction_type, cand_name, cand_party_affiliation) %>%
     summarize(total = sum(transaction_amt))
-
-  ggplot(forEachCandSummary, aes(x = transaction_type, y = total)) +
-    geom_bar(stat = "identity") +
-    ggtitle(label = forEachCand$cand_name[1])
-}
-```
-
-Similarly a function for all the Republicans: 
-
-```{r}
-eachRepData <- function(cand_id_arg) {
-  
-  forEachCand <- rep_data %>%
-  filter(cand_id == cand_id_arg) %>%
-  select(cand_id, cand_name, cand_party_affiliation,
-         cand_election_yr, cand_office_state, cmte_id,
-         transaction_pgi, transaction_type, entity_type, name, transaction_amt) %>%
-  group_by(transaction_type)
-  
-
-  forEachCandSummary <- forEachCand %>%
-    summarize(total = sum(transaction_amt))
-
-  ggplot(forEachCandSummary, aes(x = transaction_type, y = total)) +
-    geom_bar(stat = "identity") +
-    ggtitle(label = forEachCand$cand_name[1])
 }
 ```
 
 
-Store all the *unique* candidate IDs in the data frame as a vector and map the function that produces the bar graph on all of them: f
+Store all the *unique* candidate IDs in the data frame as a vector and map the function that produces the bar graph on all of them: 
 
-```{r}
-demCandIDVector <- unique(dem_data$cand_id)
-repCandIDVector <- unique(rep_data$cand_id)
+```{r, message = FALSE}
+candIDVector <- unique(fltr_cand$cand_name)
+candidatesDF <- data.frame(candIDVector)
 
-map(demCandIDVector, eachDemData)
-map(repCandIDVector, eachRepData)
+allCandidates <- map_df(candidatesDF, eachCandData)
+
+ggplot(allCandidates, aes(x = transaction_type, y = total, fill = transaction_type)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~as.factor(cand_name))
+
 ```
 
 
