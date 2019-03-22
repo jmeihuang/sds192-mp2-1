@@ -114,4 +114,4 @@ ggplot(all_states, aes(x = cand_name, y = total/100,000, fill = transaction_type
   labs(title = "Amount Spent by the Committees'For' and 'Against' Senate Candidates in New England States", x = "Candidate Name", y = "Amount donated (in $100,000)")
 ```
 
-making a temp change
+
