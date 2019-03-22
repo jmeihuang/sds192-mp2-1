@@ -108,7 +108,8 @@ Make bar graphs:
 
 ```{r}
 ##making a bar graph to plot the summarise data ----
-colorVector <- c("grey","green")
+colorVector <- c("grey","blue")
+colorVectorAl <- c("grey", "red")
 
 ggplot(allCandidates, aes(x = transaction_type, y = total/1000000, fill = transaction_type)) +
   geom_bar(stat = "identity", width = 0.5) +
