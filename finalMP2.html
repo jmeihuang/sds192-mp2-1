@@ -229,10 +229,8 @@ new_cand &lt;- filter_cand %&gt;%
 test24 &lt;- new_cand %&gt;%
   group_by(cand_name, transaction_type) %&gt;%
   summarize(total_given = sum(transaction_amt))</code></pre>
-<p>Renaming <code>G2012</code> entries to <code>G</code> as they mean the same thing since the year is fixed as <code>2012</code></p>
 <pre class="r"><code>new_cand$transaction_pgi &lt;- revalue(new_cand$transaction_pgi, c(&quot;G2012&quot; = &quot;G&quot;))</code></pre>
 <pre class="r"><code>detach(package:plyr)</code></pre>
-<p>look at individual candidates</p>
 <pre class="r"><code>vector_state &lt;- unique(new_cand$cand_office_state)
 
 state_df &lt;- data.frame(vector_state)
