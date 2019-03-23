@@ -1,13 +1,17 @@
 ---
-title: "senate_j"
-output: html_document
+title: "roughDraft"
+author: "Nukhbah Majid"
+date: "3/22/2019"
+output: 
+  html_document:
+    code_folding: show
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, message=FALSE}
 library(tidyverse)
 library(dplyr)
 library(plyr)
@@ -35,31 +39,9 @@ test24 <- new_cand %>%
   summarize(total_given = sum(transaction_amt))
 ```
 
-```{r}
-##democrats
-dem_data <- new_cand %>%
-  filter(cand_party_affiliation == "DEM")
-
-##republicans
-rep_data <- new_cand %>%
-  filter(cand_party_affiliation == "REP")
-```
-
-Filter for the general election candidates:
-
-```{r}
-dem_data <- dem_data %>%
-  filter(transaction_pgi == "G" | transaction_pgi == "G2012")
-
-rep_data <- rep_data %>%
-  filter(transaction_pgi == "G" | transaction_pgi == "G2012")
-```
-
 Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
 
 ```{r}
-dem_data$transaction_pgi <- revalue(dem_data$transaction_pgi, c("G2012" = "G"))
-rep_data$transaction_pgi <- revalue(rep_data$transaction_pgi, c("G2012" = "G"))
 new_cand$transaction_pgi <- revalue(new_cand$transaction_pgi, c("G2012" = "G"))
 ```
 
@@ -102,15 +84,34 @@ all_states <- map_df(some_df$some_states, new_data)
 ```
 
 ```{r fig.width=20, fig.height=20}
-fill_c <- c("gray", "lightgreen")
+fill_c <- c("black", "purple")
 fill_party <- c("blue", "red")
 
 ##transaction amount in 100,000s
-ggplot(all_states, aes(x = cand_name, y = total/100,000, fill = transaction_type, color = cand_party_affiliation)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_manual(values = fill_c) +
-  scale_color_manual(values = fill_party) +
+ggplot(all_states, aes(x = cand_name, y = total/1000000, fill = cand_party_affiliation, color = transaction_type)) +
+  geom_bar(stat = "identity", position = "dodge", size = 1.6) +
+  scale_fill_manual("Candidate Party\nAffiliation",values = fill_party) +
+  scale_color_manual("Contributions for:",labels = c("Opposing", "Supporting"), values = fill_c) +
   facet_wrap(~as.factor(cand_office_state), scales = "free") +
-  labs(title = "Amount Spent by the Committees 'For' and 'Against' Senate Candidates in New England States", x = "Candidate Name", y = "Amount donated (in $100,000)")
+  scale_y_continuous(limits = c(0, 6.5), expand = c(0,0)) +
+  geom_text(aes(label= total/1000000), position = position_dodge(width=0.9),
+            vjust= -0.35, size = 7) +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 10, hjust = 0.4, size = 18), 
+        axis.title.x = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 24),
+        axis.text.y = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 20), 
+        axis.title.y = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 24),
+        plot.title = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 30),
+        strip.text = element_text(family = "Century Gothic", face = "bold", size = 26),
+        legend.text = element_text(family = "Century Gothic", face = "bold", size = 24),
+        legend.title = element_text(family = "Century Gothic", face = "bold", size = 26)) +
+  labs(title = "Amount Spent by the Committees 'For' and 'Against' Senate Candidates in New England\nStates\n", x = "Candidate Name", y = "Amount Contributed (in millions)") 
 ```
+
+
+
 
