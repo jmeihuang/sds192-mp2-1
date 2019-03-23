@@ -1,15 +1,11 @@
 ---
-title: "finalMP2"
+title: "Examining Contributions Made to New England Candidates\nRunning for Senate in the 2012 Elections"
 author: "GroupMP2E: Nukhbah Majid, Chhiring Lama, Joyce Huang"
 date: "3/22/2019"
 output: 
   html_document:
     code_folding: show
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -43,7 +39,6 @@ test24 <- new_cand %>%
   summarize(total_given = sum(transaction_amt))
 ```
 
-Renaming `G2012` entries to `G` as they mean the same thing since the year is fixed as `2012`
 
 ```{r}
 new_cand$transaction_pgi <- revalue(new_cand$transaction_pgi, c("G2012" = "G"))
@@ -54,7 +49,6 @@ detach(package:plyr)
 ```
 
 
-look at individual candidates
 ```{r fig.width=12, fig.height=11}
 vector_state <- unique(new_cand$cand_office_state)
 
