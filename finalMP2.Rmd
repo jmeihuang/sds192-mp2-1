@@ -11,7 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo = FALSE}
 library(tidyverse)
 library(dplyr)
 library(plyr)
@@ -71,6 +71,10 @@ new_data <- function(state_arg) {
 all_states <- map_df(some_df$some_states, new_data)
 ```
 
+Our group decided to look at the Senate elections in 2012 for Massachusetts (MA), Rhode Island (RI) and Connecticut (CT). We initially wanted to look at all five states in New England, but New Hampshire did not have a Senate election. We also want to only look the states that just have Republican or Democratic candidates (CT, MA, RI). This is because elections are typically polarized between Democrats and Republicans, so we want to compare candidates from these two parties.
+
+We wanted to see how much independent expenditures committees spent for or against each candidate in each state. According to the [FEC](https://www.fec.gov/help-candidates-and-committees/making-independent-expenditures/), "Independent expenditures are not contributions and are not subject to limits." For example, the money can be used for advertisements that identify or advocates/opposes a candidate, but the committee cannot collaborate with the candidate.
+
 ```{r fig.width=20, fig.height=20}
 fill_c <- c("black", "purple")
 fill_party <- c("blue", "red")
@@ -99,3 +103,16 @@ ggplot(all_states, aes(x = cand_name, y = total/1000000, fill = cand_party_affil
         legend.title = element_text(family = "Century Gothic", face = "bold", size = 26)) +
   labs(title = "Amount Spent by the Committees 'For' and 'Against' Senate Candidates in New England\nStates\n", x = "Candidate Name", y = "Amount Contributed (in millions)") 
 ```
+
+This data graphic shows the total contribution made ‘for’ and ‘against’ a candidate in the general senate election in MA, RI, and CT in 2012. In Connecticut, Chris Murphy [won](https://www.nytimes.com/elections/2012/results/senate.html) the election. The amount that committees spent more supporting him was slightly more than his opponent, Linda McMahon; committees also spent more money against McMahon than Murphy. In Massachusetts, Elizabeth Warren won the election. The amount that committees spent advocating her election is greater than her opponent, Scott P. Brown; the amount spent opposing her election is less than her opponent. In CT and MA, we observe that for the candidates who won, independent expenditures supporting them are higher and those against are lower than their opponents. Winners in both states are Democrats.
+
+In Rhode Island is an interesting exception: Sheldon Whitehouse, a Democrat, won the election. However, independent expenditures spent opposing him is significantly higher than his opponent, Barry Hinckley. Hinckley also had more independent expenditures supporting him than Whitehouse. We think that Whitehouse won despite independent expenditures against him is because he is an [incumbent](https://ballotpedia.org/Sheldon_Whitehouse) candidate who has been serving RI since 2007. Our data graphic doesn't show contributions such as loan endorsements or individual [donations](https://transition.fec.gov/pages/brochures/citizens.shtml#contribution). Sheldon raised significantly more money overall for his [campaign](https://www.opensecrets.org/races/summary?cycle=2012&id=RIS1).
+
+This shows that although committees can raise large amounts of money supporting or opposing a candidate, their independent expenditures may not be enough to help the candidate win the election.
+
+For further reference, check our GitHub repository.^[Link to github repository: https://github.com/jmeihuang/sds192-mp2-1.git]
+
+
+
+
+##Mention VT and ME
