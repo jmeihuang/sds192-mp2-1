@@ -73,16 +73,6 @@ new_data <- function(state_arg) {
     arrange(desc(total))
 }
 
-#####
-teststate <- new_cand %>%
-  group_by(cand_name, cand_office_state, 
-           cand_party_affiliation) %>%
-  summarize(total_given = sum(transaction_amt)) %>%
-  filter(cand_office_state == "ME") %>%
-  arrange(desc(total_given)) %>%
-  ungroup()%>%
-  top_n(2)
-
 #map dataframe of states to the function
 all_states <- map_df(some_df$some_states, new_data)
 ```
