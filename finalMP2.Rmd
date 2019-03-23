@@ -1,0 +1,118 @@
+---
+title: "Examining Contributions Made to New England Candidates\nRunning for Senate in the 2012 Elections"
+author: "GroupMP2E: Nukhbah Majid, Chhiring Lama, Joyce Huang"
+date: "3/22/2019"
+output: 
+  html_document:
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, echo = FALSE}
+library(tidyverse)
+library(dplyr)
+library(plyr)
+library(purrr)
+library(ggthemes)
+library(ggplot2)
+load("house_elections.rda")
+load("candidates.rda")
+load("committees.rda")
+load("contributions.rda")
+```
+
+
+```{r}
+##new_cand just filters for the candidates we want
+filter_cand <- candidates %>%
+  filter(cand_party_affiliation == "DEM" | cand_party_affiliation == "REP", cand_election_yr == "2012")
+
+new_cand <- filter_cand %>%
+  inner_join(contributions, by = "cand_id") %>%
+  filter(transaction_type == "24A" | transaction_type == "24E", transaction_pgi == "G" | transaction_pgi == "G2012", cand_office == "S")
+
+test24 <- new_cand %>%
+  group_by(cand_name, transaction_type) %>%
+  summarize(total_given = sum(transaction_amt))
+```
+
+
+```{r}
+new_cand$transaction_pgi <- revalue(new_cand$transaction_pgi, c("G2012" = "G"))
+```
+
+```{r}
+detach(package:plyr)
+```
+
+
+```{r fig.width=12, fig.height=11}
+vector_state <- unique(new_cand$cand_office_state)
+
+state_df <- data.frame(vector_state)
+
+some_states <- c("CT", "MA", "RI")
+some_df <- data.frame(some_states)
+
+#call function on the names
+new_data <- function(state_arg) {
+  new_cand %>%
+    filter(cand_office_state == state_arg) %>%
+    group_by(transaction_type, cand_name, cand_office_state,
+             cand_party_affiliation) %>%
+    summarize(total = sum(transaction_amt)) %>%
+    arrange(desc(total))
+}
+
+#map dataframe of states to the function
+all_states <- map_df(some_df$some_states, new_data)
+```
+
+Our group decided to look at the Senate elections in 2012 for Massachusetts (MA), Rhode Island (RI) and Connecticut (CT). We initially wanted to look at all five states in New England, but New Hampshire did not have a Senate election. We also want to only look the states that just have Republican or Democratic candidates (CT, MA, RI). This is because elections are typically polarized between Democrats and Republicans, so we want to compare candidates from these two parties.
+
+We wanted to see how much independent expenditures committees spent for or against each candidate in each state. According to the [FEC](https://www.fec.gov/help-candidates-and-committees/making-independent-expenditures/), "Independent expenditures are not contributions and are not subject to limits." For example, the money can be used for advertisements that identify or advocates/opposes a candidate, but the committee cannot collaborate with the candidate.
+
+```{r fig.width=20, fig.height=20}
+fill_c <- c("black", "purple")
+fill_party <- c("blue", "red")
+
+##transaction amount in 100,000s
+ggplot(all_states, aes(x = cand_name, y = total/1000000, fill = cand_party_affiliation, color = transaction_type)) +
+  geom_bar(stat = "identity", position = "dodge", size = 1.6) +
+  scale_fill_manual("Candidate Party\nAffiliation",values = fill_party) +
+  scale_color_manual("Contributions for:",labels = c("Opposing", "Supporting"), values = fill_c) +
+  facet_wrap(~as.factor(cand_office_state), scales = "free") +
+  scale_y_continuous(limits = c(0, 6.5), expand = c(0,0)) +
+  geom_text(aes(label= total/1000000), position = position_dodge(width=0.9),
+            vjust= -0.35, size = 7) +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 10, hjust = 0.4, size = 18), 
+        axis.title.x = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 24),
+        axis.text.y = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 20), 
+        axis.title.y = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 24),
+        plot.title = element_text(family = "Century Gothic", 
+                                    color = "black", face = "bold", size = 30),
+        strip.text = element_text(family = "Century Gothic", face = "bold", size = 26),
+        legend.text = element_text(family = "Century Gothic", face = "bold", size = 24),
+        legend.title = element_text(family = "Century Gothic", face = "bold", size = 26)) +
+  labs(title = "Amount Spent by the Committees 'For' and 'Against' Senate Candidates in New England\nStates\n", x = "Candidate Name", y = "Amount Contributed (in millions)") 
+```
+
+This data graphic shows the total contribution made ‘for’ and ‘against’ a candidate in the general senate election in MA, RI, and CT in 2012. In Connecticut, Chris Murphy [won](https://www.nytimes.com/elections/2012/results/senate.html) the election. The amount that committees spent more supporting him was slightly more than his opponent, Linda McMahon; committees also spent more money against McMahon than Murphy. In Massachusetts, Elizabeth Warren won the election. The amount that committees spent advocating her election is greater than her opponent, Scott P. Brown; the amount spent opposing her election is less than her opponent. In CT and MA, we observe that for the candidates who won, independent expenditures supporting them are higher and those against are lower than their opponents. Winners in both states are Democrats.
+
+In Rhode Island is an interesting exception: Sheldon Whitehouse, a Democrat, won the election. However, independent expenditures spent opposing him is significantly higher than his opponent, Barry Hinckley. Hinckley also had more independent expenditures supporting him than Whitehouse. We think that Whitehouse won despite independent expenditures against him is because he is an [incumbent](https://ballotpedia.org/Sheldon_Whitehouse) candidate who has been serving RI since 2007. Our data graphic doesn't show contributions such as loan endorsements or individual [donations](https://transition.fec.gov/pages/brochures/citizens.shtml#contribution). Sheldon raised significantly more money overall for his [campaign](https://www.opensecrets.org/races/summary?cycle=2012&id=RIS1).
+
+This shows that although committees can raise large amounts of money supporting or opposing a candidate, their independent expenditures may not be enough to help the candidate win the election.
+
+For further reference, check our GitHub repository.^[Link to github repository: https://github.com/jmeihuang/sds192-mp2-1.git]
+
+
+
+
+##Mention VT and ME
